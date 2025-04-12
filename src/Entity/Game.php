@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Model\GameStatus;
 use App\Repository\GameRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
@@ -21,6 +22,9 @@ class Game
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\Column(enumType: GameStatus::class)]
+    private ?GameStatus $status = null;
 
     public function getId(): ?Uuid
     {
@@ -47,6 +51,18 @@ class Game
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getStatus(): ?GameStatus
+    {
+        return $this->status;
+    }
+
+    public function setStatus(GameStatus $status): static
+    {
+        $this->status = $status;
 
         return $this;
     }
