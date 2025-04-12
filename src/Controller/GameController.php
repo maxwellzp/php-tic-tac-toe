@@ -55,7 +55,7 @@ final class GameController extends AbstractController
         $entityManager->persist($game);
         $entityManager->flush();
 
-        return new Response();
+        return $this->redirectToRoute('app_game_play', ['id' => $game->getId()]);
     }
 
     #[Route('/game/{id}/move/{cell}', name: 'app_game_move')]
