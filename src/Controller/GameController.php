@@ -18,8 +18,10 @@ final class GameController extends AbstractController
     public function index(GameRepository $gameRepository): Response
     {
         $waitingGames = $gameRepository->findBy(['status' => GameStatus::WAITING]);
+        $activeGames = $gameRepository->findBy(['status' => GameStatus::PLAYING]);
         return $this->render('game/index.html.twig', [
             'waitingGames' => $waitingGames,
+            'activeGames' => $activeGames
         ]);
     }
 
@@ -32,7 +34,15 @@ final class GameController extends AbstractController
         $entityManager->persist($game);
         $entityManager->flush();
 
-        return new Response();
+        return $this->redirectToRoute('app_game_play', ['id' => $game->getId()]);
+    }
+
+    #[Route('/game/{id}', name: 'app_game_play')]
+    public function play(Game $game): Response
+    {
+        return $this->render('game/play.html.twig', [
+            'game' => $game,
+        ]);
     }
 
     #[Route('/game/{id}/join', name: 'app_game_join')]
