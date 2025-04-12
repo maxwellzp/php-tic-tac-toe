@@ -1,20 +1,25 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello GameController!{% endblock %}
+{% block title %}Tic Tac Toe - Home{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+    <div class="row">
+        <div>
+            <h1>Tic Tac Toe</h1>
+            <a href="{{ path('app_game_new') }}" class="btn">Create New Game</a>
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
-
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code>/home/maksim/php-tic-tac-toe/src/Controller/GameController.php</code></li>
-        <li>Your template at <code>/home/maksim/php-tic-tac-toe/templates/game/index.html.twig</code></li>
-    </ul>
-</div>
+            {% if waitingGames|length > 0 %}
+                <ul>
+                    {% for game in waitingGames %}
+                        <li>
+                            Game #{{ game.id }} / {{ game.createdAt|date('Y-m-d H:i:s') }}
+                            <a href="{{ path('app_game_join', {'id': game.id}) }}" class="btn">Join</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>There are no available games.</p>
+            {% endif %}
+        </div>
+    </div>
 {% endblock %}

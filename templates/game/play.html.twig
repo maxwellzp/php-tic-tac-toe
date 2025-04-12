@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Game #{{ game.id }}{% endblock %}
+
+{% block body %}
+    <div>
+        <div>
+            <h1>Game #{{ game.id }}</h1>
+
+            <div>
+                <h2>STATUS</h2>
+                {% for row in 0..2 %}
+                    <div>
+                        {% for col in 0..2 %}
+                            <div>
+                                <button>X</button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+
+            </div>
+
+            <div>
+                <a href="{{ path('app_game_index') }}" class="btn">Back home</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
