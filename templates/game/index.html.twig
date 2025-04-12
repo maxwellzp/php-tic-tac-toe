@@ -3,23 +3,58 @@
 {% block title %}Tic Tac Toe - Home{% endblock %}
 
 {% block body %}
-    <div class="row">
-        <div>
-            <h1>Tic Tac Toe</h1>
-            <a href="{{ path('app_game_new') }}" class="btn">Create New Game</a>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 class="text-center mb-5">Tic Tac Toe</h1>
 
-            {% if waitingGames|length > 0 %}
-                <ul>
-                    {% for game in waitingGames %}
-                        <li>
-                            Game #{{ game.id }} / {{ game.createdAt|date('Y-m-d H:i:s') }}
-                            <a href="{{ path('app_game_join', {'id': game.id}) }}" class="btn">Join</a>
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>There are no available games.</p>
-            {% endif %}
+            <div class="text-center mb-4">
+                <a href="{{ path('app_game_new') }}" class="btn btn-primary btn-lg">Create New Game</a>
+            </div>
+
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2>Available Games</h2>
+                </div>
+                <div class="card-body">
+                    {% if waitingGames|length > 0 %}
+                        <ul>
+                            {% for game in waitingGames %}
+                                <li>
+                                    Game #{{ game.id }} / {{ game.createdAt|date('Y-m-d H:i:s') }}
+                                    <a href="{{ path('app_game_join', {'id': game.id}) }}" class="btn">Join</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>There are no available games.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Active Games</h2>
+                </div>
+                <div class="card-body">
+                    {% if activeGames|length > 0 %}
+                        <ul class="list-group">
+                            {% for game in activeGames %}
+                                <li class="list-group-item">
+                                    Game #{{ game.id }}: Player 1 vs Player 2
+                                    <a href="{{ path('app_game_play', {'id': game.id}) }}"
+                                       class="btn btn-sm btn-info float-end">Watch</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No active games at the moment.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+
         </div>
     </div>
 {% endblock %}

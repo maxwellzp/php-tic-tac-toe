@@ -3,26 +3,44 @@
 {% block title %}Game #{{ game.id }}{% endblock %}
 
 {% block body %}
-    <div>
-        <div>
-            <h1>Game #{{ game.id }}</h1>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h1 class="text-center mb-4">Game #{{ game.id }}</h1>
 
-            <div>
-                <h2>STATUS</h2>
-                {% for row in 0..2 %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2 class="text-center">
+                        {% if game.status == 'waiting' %}
+                            Waiting for opponent...
+                        {% elseif game.status == 'playing' %}
+                            Player1 (X) vs Player2 (O)
+                        {% else %}
+                            Game Over
+                        {% endif %}
+                    </h2>
+                </div>
+                <div class="card-body">
+
                     <div>
-                        {% for col in 0..2 %}
-                            <div>
-                                <button>X</button>
-                            </div>
-                        {% endfor %}
+                        <div class="game-board">
+                            {% for row in 0..2 %}
+                                <div class="row justify-content-center">
+                                    {% for col in 0..2 %}
+                                        <div class="col-4 p-1">
+                                            <button>
+                                                X
+                                            </button>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        </div>
                     </div>
-                {% endfor %}
-
+                </div>
             </div>
 
-            <div>
-                <a href="{{ path('app_game_index') }}" class="btn">Back home</a>
+            <div class="text-center">
+                <a href="{{ path('app_game_index') }}" class="btn btn-secondary">Back home</a>
             </div>
         </div>
     </div>
