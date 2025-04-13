@@ -17,13 +17,10 @@
                     <h2>Available Games</h2>
                 </div>
                 <div class="card-body">
-                    {% if waitingGames|length > 0 %}
+                    {% if availableGames|length > 0 %}
                         <ul>
-                            {% for game in waitingGames %}
-                                <li>
-                                    Game #{{ game.id }} / {{ game.createdAt|date('Y-m-d H:i:s') }}
-                                    <a href="{{ path('app_game_join', {'id': game.id}) }}" class="btn">Join</a>
-                                </li>
+                            {% for game in availableGames %}
+                                {{ include('game/_available_game.html.twig', { game: game }) }}
                             {% endfor %}
                         </ul>
                     {% else %}
@@ -41,11 +38,7 @@
                     {% if activeGames|length > 0 %}
                         <ul class="list-group">
                             {% for game in activeGames %}
-                                <li class="list-group-item">
-                                    Game #{{ game.id }}: Player 1 vs Player 2
-                                    <a href="{{ path('app_game_play', {'id': game.id}) }}"
-                                       class="btn btn-sm btn-info float-end">Watch</a>
-                                </li>
+                                {{ include('game/_active_game.html.twig', { game: game }) }}
                             {% endfor %}
                         </ul>
                     {% else %}

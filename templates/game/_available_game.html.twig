@@ -1,0 +1,4 @@
+<li>
+    Game #{{ game.id }} / {{ game.createdAt|date('Y-m-d H:i:s') }}
+    <a href="{{ path('app_game_join', {'id': game.id}) }}" class="btn">Join</a>
+</li>
