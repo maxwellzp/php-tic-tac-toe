@@ -18,10 +18,10 @@ final class GameController extends AbstractController
     #[Route('/game', name: 'app_game_index')]
     public function index(GameRepository $gameRepository): Response
     {
-        $waitingGames = $gameRepository->findBy(['status' => GameStatus::WAITING]);
+        $availableGames = $gameRepository->findBy(['status' => GameStatus::WAITING]);
         $activeGames = $gameRepository->findBy(['status' => GameStatus::PLAYING]);
         return $this->render('game/index.html.twig', [
-            'waitingGames' => $waitingGames,
+            'availableGames' => $availableGames,
             'activeGames' => $activeGames
         ]);
     }
