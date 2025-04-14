@@ -1,6 +1,9 @@
 <div class="col-4 position-relative" style="padding-bottom: 33.33%;">
-    <button class="btn btn-outline-secondary position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+    <a
+            href="{{ path('app_game_move', {'id': game.id, 'cell': i}) }}"
+            class="btn btn-outline-secondary position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
             {% if game.board[i] is not empty or game.status.value != 'playing' or not app.user or not game.isCurrentPlayer(app.user) %}disabled{% endif %}>
+
         <span class="display-3 fw-bold">{{ game.board[i] }}</span>
-    </button>
+    </a>
 </div>
