@@ -19,7 +19,7 @@ class Game
     private ?Uuid $id = null;
 
     #[ORM\Column]
-    private array $board = [];
+    private array $board = ["", "", "", "", "", "", "", "", ""];
     /*
         0 | 1 | 2
         ---------
