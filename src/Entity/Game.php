@@ -40,6 +40,12 @@ class Game
     #[ORM\Column(nullable: true, enumType: GameTurn::class)]
     private ?GameTurn $winner = null;
 
+    #[ORM\ManyToOne(inversedBy: 'games')]
+    private ?User $userX = null;
+
+    #[ORM\ManyToOne(inversedBy: 'games')]
+    private ?User $userO = null;
+
     public function __construct()
     {
         $this->currentTurn = GameTurn::X_TURN;
@@ -109,5 +115,37 @@ class Game
         $this->winner = $winner;
 
         return $this;
+    }
+
+    public function getUserX(): ?User
+    {
+        return $this->userX;
+    }
+
+    public function setUserX(?User $userX): static
+    {
+        $this->userX = $userX;
+
+        return $this;
+    }
+
+    public function getUserO(): ?User
+    {
+        return $this->userO;
+    }
+
+    public function setUserO(?User $userO): static
+    {
+        $this->userO = $userO;
+
+        return $this;
+    }
+
+    public function isCurrentPlayer(?User $user): bool
+    {
+        if ($this->currentTurn === GameTurn::X_TURN) {
+            return $this->userX === $user;
+        }
+        return $this->userO === $user;
     }
 }
