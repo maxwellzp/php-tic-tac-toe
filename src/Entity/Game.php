@@ -18,7 +18,7 @@ class Game
     #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
     private ?Uuid $id = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'json')]
     private array $board = ["", "", "", "", "", "", "", "", ""];
     /*
         0 | 1 | 2
