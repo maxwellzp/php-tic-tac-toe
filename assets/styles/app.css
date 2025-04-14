@@ -2,3 +2,16 @@
 body {
     background-color: lightgray;
 }
+.game-board {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+
+.btn-outline-secondary {
+    border-color: #6c757d;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #f8f9fa;
+}
