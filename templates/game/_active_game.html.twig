@@ -1,5 +1,4 @@
 <li class="list-group-item">
-    Game #{{ game.id }}: Player 1 vs Player 2
-    <a href="{{ path('app_game_play', {'id': game.id}) }}"
-       class="btn btn-sm btn-info float-end">Watch</a>
+    Game #{{ game.id }}: {{ game.userX.email }} vs {{ game.userO.email }}
+    <a href="{{ path('app_game_play', {'id': game.id}) }}" class="btn btn-sm btn-info float-end">Watch</a>
 </li>

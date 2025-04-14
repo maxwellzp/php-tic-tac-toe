@@ -1,4 +1,6 @@
-<li>
-    Game #{{ game.id }} / {{ game.createdAt|date('Y-m-d H:i:s') }}
-    <a href="{{ path('app_game_join', {'id': game.id}) }}" class="btn">Join</a>
+<li class="list-group-item d-flex justify-content-between align-items-center">
+    Game #{{ game.id }} (Host: {{ game.userX.email }})
+    {% if is_granted('ROLE_USER') and game.userX != app.user %}
+        <a href="{{ path('app_game_join', {'id': game.id}) }}" class="btn btn-sm btn-success">Join</a>
+    {% endif %}
 </li>

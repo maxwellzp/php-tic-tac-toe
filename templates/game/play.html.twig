@@ -4,26 +4,39 @@
 
 {% block body %}
     <div class="row justify-content-center">
-        <div class="col-md-6">
+        <div class="col-md-9">
             <h1 class="text-center mb-4">Game #{{ game.id }}</h1>
 
             <div class="card mb-4">
                 <div class="card-header">
                     <h2 class="text-center">
-                        {% if game.status == 'waiting' %}
+                        {% if game.status.value == 'waiting' %}
                             Waiting for opponent...
-                        {% elseif game.status == 'playing' %}
-                            Player1 (X) vs Player2 (O)
+                        {% elseif game.status.value == 'playing' %}
+                            {{ game.userX.email }} (X) vs {{ game.userO.email }} (O)
                         {% else %}
                             Game Over
                         {% endif %}
                     </h2>
                 </div>
                 <div class="card-body">
+                    <div class="text-center mb-3">
+                        {% if game.status.value == 'playing' %}
+                            <p class="lead">Current turn: {{ game.currentTurn.value }} ({{ game.currentTurn.value == 'X' ? game.userX.email : game.userO.email }})</p>
+                        {% elseif game.winner %}
+                            <p class="lead">Winner: {{ game.winner == 'X' ? game.userX.email : game.userO.email }}</p>
+                        {% elseif game.status.value == 'finished' %}
+                            <p class="lead">It's a draw!</p>
+                        {% endif %}
+                    </div>
+
                     <div>
                         <div class="game-board">
-                            {{ include('game/_game_board.html.twig') }}
-                        </div>
+                            <div class="row justify-content-center g-2">
+                                {% for i in 0..8 %}
+                                    {{ include('game/_game_board.html.twig', { game: game }) }}
+                                {% endfor %}
+                            </div>
                     </div>
                 </div>
             </div>

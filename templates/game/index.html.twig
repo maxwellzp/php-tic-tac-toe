@@ -5,12 +5,18 @@
 {% block body %}
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <h1 class="text-center mb-5">Tic Tac Toe</h1>
+            <h1 class="text-center mb-5">Online Tic Tac Toe</h1>
 
-            <div class="text-center mb-4">
-                <a href="{{ path('app_game_new') }}" class="btn btn-primary btn-lg">Create New Game</a>
-            </div>
-
+            {% if is_granted('ROLE_USER') %}
+                <div class="text-center mb-4">
+                    <a href="{{ path('app_game_new') }}" class="btn btn-primary btn-lg">Create New Game</a>
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center mb-4">
+                    <a href="{{ path('app_login') }}" class="btn btn-primary">Login</a> or
+                    <a href="{{ path('app_register') }}" class="btn btn-secondary">Register</a> to create or join games
+                </div>
+            {% endif %}
 
             <div class="card mb-4">
                 <div class="card-header">
@@ -18,17 +24,16 @@
                 </div>
                 <div class="card-body">
                     {% if availableGames|length > 0 %}
-                        <ul>
+                        <ul class="list-group">
                             {% for game in availableGames %}
                                 {{ include('game/_available_game.html.twig', { game: game }) }}
                             {% endfor %}
                         </ul>
                     {% else %}
-                        <p>There are no available games.</p>
+                        <p>No available games. Create one!</p>
                     {% endif %}
                 </div>
             </div>
-
 
             <div class="card">
                 <div class="card-header">
@@ -46,7 +51,6 @@
                     {% endif %}
                 </div>
             </div>
-
 
         </div>
     </div>
