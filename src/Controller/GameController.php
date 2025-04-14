@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Game;
+use App\Factory\GameFactory;
 use App\Model\GameStatus;
-use App\Model\GameTurn;
 use App\Repository\GameRepository;
+use App\Service\GameService;
+use App\Service\MercureService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -29,15 +31,18 @@ final class GameController extends AbstractController
 
     #[Route('/game/new', name: 'app_game_new')]
     #[IsGranted('ROLE_USER')]
-    public function new(EntityManagerInterface $entityManager): Response
+    public function new(
+        GameFactory            $gameFactory,
+        EntityManagerInterface $entityManager,
+        MercureService         $mercureService,
+    ): Response
     {
-        $game = new Game();
-        $game->setUserX($this->getUser());
-        $game->setCurrentTurn(GameTurn::X_TURN);
-        $game->setStatus(GameStatus::WAITING);
-        $game->setCreatedAt(new \DateTimeImmutable());
+        $game = $gameFactory->create($this->getUser());
+
         $entityManager->persist($game);
         $entityManager->flush();
+
+        $mercureService->publishNewGameAvailable($game);
 
         return $this->redirectToRoute('app_game_play', ['id' => $game->getId()]);
     }
@@ -52,25 +57,37 @@ final class GameController extends AbstractController
 
     #[Route('/game/{id}/join', name: 'app_game_join')]
     #[IsGranted('ROLE_USER')]
-    public function join(Game $game, EntityManagerInterface $entityManager): Response
+    public function join(
+        Game                   $game,
+        EntityManagerInterface $entityManager,
+        MercureService         $mercureService
+    ): Response
     {
-        if ($game->getStatus() !== GameStatus::WAITING) {
-            throw new \Exception("Game status is not waiting");
-        }
-        if ($game->getUserX() === $this->getUser()) {
+        if ($this->getUser() === $game->getUserX()) {
             throw new \Exception("You can't join this game");
         }
+
         $game->setUserO($this->getUser());
         $game->setStatus(GameStatus::PLAYING);
         $entityManager->persist($game);
         $entityManager->flush();
+
+        $mercureService->publishGameUpdate($game, [
+            'type' => 'game_start',
+            'id' => $game->getId(),
+        ]);
 
         return $this->redirectToRoute('app_game_play', ['id' => $game->getId()]);
     }
 
     #[Route('/game/{id}/move/{cell}', name: 'app_game_move')]
     #[IsGranted('ROLE_USER')]
-    public function move(Game $game, int $cell, EntityManagerInterface $entityManager): Response
+    public function move(
+        Game                   $game,
+        int                    $cell,
+        EntityManagerInterface $entityManager,
+        GameService            $gameService
+    ): Response
     {
         if ($game->getStatus() !== GameStatus::PLAYING) {
             throw new \Exception("Game status is not playing");
@@ -78,60 +95,12 @@ final class GameController extends AbstractController
         if (!$game->isCurrentPlayer($this->getUser())) {
             throw new \Exception("Not your turn!");
         }
-        $board = $game->getBoard();
 
-        $board[$cell] = $game->getCurrentTurn();
-        $game->setBoard($board);
-
-        $winner = $this->checkWinner($board);
-        if ($winner) {
-            $game->setWinner($winner);
-        } else {
-            $game->setCurrentTurn(match ($game->getCurrentTurn()) {
-                GameTurn::X_TURN => GameTurn::O_TURN,
-                GameTurn::O_TURN => GameTurn::X_TURN,
-            });
+        if ($gameService->makeMove($game, $cell)) {
+            $entityManager->flush();
         }
-
-        $entityManager->flush();
 
         return $this->redirectToRoute('app_game_play', ['id' => $game->getId()]);
     }
 
-    #[Route('/game/{id}/leave', name: 'app_game_leave')]
-    public function leave(): Response
-    {
-        #TODO finish the game
-        return new Response();
-    }
-
-    private function checkWinner(array $board): ?GameTurn
-    {
-        $lines = [
-            [0, 1, 2], [3, 4, 5], [6, 7, 8],    // Rows
-            [0, 3, 6], [1, 4, 7], [2, 5, 8],    // Columns
-            [0, 4, 8], [2, 4, 6],               // Diagonals
-        ];
-
-        /*
-         *                  0,  1,  2
-         *                  3,  4,  5
-         *                  6,  7,  8
-         *                  0,  3,  6
-         *                  1,  4,  7
-         *                  2,  5,  8
-         *                  0,  4,  8
-         *                  2,  4,  6
-         */
-        foreach ($lines as [$a, $b, $c]) {
-            if (
-                $board[$a] instanceof GameTurn &&
-                $board[$a] === $board[$b] &&
-                $board[$a] === $board[$c]
-            ) {
-                return $board[$a];
-            }
-        }
-        return null;
-    }
 }
