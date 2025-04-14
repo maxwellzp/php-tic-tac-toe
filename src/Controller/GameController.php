@@ -12,6 +12,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final class GameController extends AbstractController
 {
@@ -27,9 +28,12 @@ final class GameController extends AbstractController
     }
 
     #[Route('/game/new', name: 'app_game_new')]
+    #[IsGranted('ROLE_USER')]
     public function new(EntityManagerInterface $entityManager): Response
     {
         $game = new Game();
+        $game->setUserX($this->getUser());
+        $game->setCurrentTurn(GameTurn::X_TURN);
         $game->setStatus(GameStatus::WAITING);
         $game->setCreatedAt(new \DateTimeImmutable());
         $entityManager->persist($game);
@@ -47,11 +51,16 @@ final class GameController extends AbstractController
     }
 
     #[Route('/game/{id}/join', name: 'app_game_join')]
+    #[IsGranted('ROLE_USER')]
     public function join(Game $game, EntityManagerInterface $entityManager): Response
     {
         if ($game->getStatus() !== GameStatus::WAITING) {
             throw new \Exception("Game status is not waiting");
         }
+        if ($game->getUserX() === $this->getUser()) {
+            throw new \Exception("You can't join this game");
+        }
+        $game->setUserO($this->getUser());
         $game->setStatus(GameStatus::PLAYING);
         $entityManager->persist($game);
         $entityManager->flush();
@@ -60,10 +69,14 @@ final class GameController extends AbstractController
     }
 
     #[Route('/game/{id}/move/{cell}', name: 'app_game_move')]
+    #[IsGranted('ROLE_USER')]
     public function move(Game $game, int $cell, EntityManagerInterface $entityManager): Response
     {
         if ($game->getStatus() !== GameStatus::PLAYING) {
             throw new \Exception("Game status is not playing");
+        }
+        if (!$game->isCurrentPlayer($this->getUser())) {
+            throw new \Exception("Not your turn!");
         }
         $board = $game->getBoard();
 
