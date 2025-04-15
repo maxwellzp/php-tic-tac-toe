@@ -36,7 +36,7 @@ class GameService
         return $newGame;
     }
 
-    public function joinGame(Game $game, ?User $user): void
+    public function joinGame(Game $game, ?User $user): Game
     {
         $game->setUserO($user);
         $game->setStatus(GameStatus::PLAYING);
@@ -47,11 +47,18 @@ class GameService
             'type' => 'game_start',
             'id' => $game->getId(),
         ]);
+        return $game;
     }
 
-    public function makeMove(Game $game, int $cell): void
+    public function makeMove(Game $game, int $cell): Game
     {
+        if ($cell < 0 || $cell > 9) {
+            throw new \Exception('Invalid cell');
+        }
         $board = $game->getBoard();
+        if ($board[$cell] instanceof GameTurn) {
+            throw new \Exception('This cell is already occupied');
+        }
 
         $board[$cell] = $game->getCurrentTurn();
         $game->setBoard($board);
@@ -69,6 +76,7 @@ class GameService
         ]);
 
         $this->gameRepository->save($game, true);
+        return $game;
     }
 
     private function checkWinner(array $board): ?GameTurn

@@ -48,7 +48,6 @@ class Game
 
     public function __construct()
     {
-        $this->currentTurn = GameTurn::X_TURN;
         $this->createdAt = new \DateTimeImmutable();
     }
 
