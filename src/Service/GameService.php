@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Game;
+use App\Entity\User;
+use App\Factory\GameFactory;
+use App\Model\GameStatus;
 use App\Model\GameTurn;
+use App\Repository\GameRepository;
 
 class GameService
 {
@@ -15,12 +19,37 @@ class GameService
         [0, 4, 8], [2, 4, 6],               // Diagonals
     ];
 
-    public function __construct(private readonly MercureService $mercureService)
+    public function __construct(
+        private readonly MercureService $mercureService,
+        private readonly GameFactory    $gameFactory,
+        private readonly GameRepository $gameRepository,
+    )
     {
 
     }
 
-    public function makeMove(Game $game, int $cell): bool
+    public function createNewGame(?User $user): Game
+    {
+        $newGame = $this->gameFactory->create($user);
+        $this->gameRepository->save($newGame, true);
+        $this->mercureService->publishNewGameAvailable($newGame);
+        return $newGame;
+    }
+
+    public function joinGame(Game $game, ?User $user): void
+    {
+        $game->setUserO($user);
+        $game->setStatus(GameStatus::PLAYING);
+
+        $this->gameRepository->save($game, true);
+
+        $this->mercureService->publishGameUpdate($game, [
+            'type' => 'game_start',
+            'id' => $game->getId(),
+        ]);
+    }
+
+    public function makeMove(Game $game, int $cell): void
     {
         $board = $game->getBoard();
 
@@ -38,7 +67,8 @@ class GameService
             'cell' => $cell,
             'winner' => $winner,
         ]);
-        return true;
+
+        $this->gameRepository->save($game, true);
     }
 
     private function checkWinner(array $board): ?GameTurn

@@ -5,12 +5,9 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Game;
-use App\Factory\GameFactory;
 use App\Model\GameStatus;
 use App\Repository\GameRepository;
 use App\Service\GameService;
-use App\Service\MercureService;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -32,18 +29,10 @@ final class GameController extends AbstractController
     #[Route('/game/new', name: 'app_game_new')]
     #[IsGranted('ROLE_USER')]
     public function new(
-        GameFactory            $gameFactory,
-        EntityManagerInterface $entityManager,
-        MercureService         $mercureService,
+        GameService $gameService,
     ): Response
     {
-        $game = $gameFactory->create($this->getUser());
-
-        $entityManager->persist($game);
-        $entityManager->flush();
-
-        $mercureService->publishNewGameAvailable($game);
-
+        $game = $gameService->createNewGame($this->getUser());
         return $this->redirectToRoute('app_game_play', ['id' => $game->getId()]);
     }
 
@@ -58,35 +47,24 @@ final class GameController extends AbstractController
     #[Route('/game/{id}/join', name: 'app_game_join')]
     #[IsGranted('ROLE_USER')]
     public function join(
-        Game                   $game,
-        EntityManagerInterface $entityManager,
-        MercureService         $mercureService
+        Game        $game,
+        GameService $gameService,
     ): Response
     {
         if ($this->getUser() === $game->getUserX()) {
             throw new \Exception("You can't join this game");
         }
 
-        $game->setUserO($this->getUser());
-        $game->setStatus(GameStatus::PLAYING);
-        $entityManager->persist($game);
-        $entityManager->flush();
-
-        $mercureService->publishGameUpdate($game, [
-            'type' => 'game_start',
-            'id' => $game->getId(),
-        ]);
-
+        $gameService->joinGame($game, $this->getUser());
         return $this->redirectToRoute('app_game_play', ['id' => $game->getId()]);
     }
 
     #[Route('/game/{id}/move/{cell}', name: 'app_game_move')]
     #[IsGranted('ROLE_USER')]
     public function move(
-        Game                   $game,
-        int                    $cell,
-        EntityManagerInterface $entityManager,
-        GameService            $gameService
+        Game        $game,
+        int         $cell,
+        GameService $gameService
     ): Response
     {
         if ($game->getStatus() !== GameStatus::PLAYING) {
@@ -96,11 +74,8 @@ final class GameController extends AbstractController
             throw new \Exception("Not your turn!");
         }
 
-        if ($gameService->makeMove($game, $cell)) {
-            $entityManager->flush();
-        }
+        $gameService->makeMove($game, $cell);
 
         return $this->redirectToRoute('app_game_play', ['id' => $game->getId()]);
     }
-
 }
