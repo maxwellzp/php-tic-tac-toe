@@ -87,7 +87,10 @@
         ],
         "post-update-cmd": [
             "@auto-scripts"
-        ]
+        ],
+        "psr-detect-violations": "./vendor/bin/phpcs src/ tests/",
+        "psr-auto-correct": "./vendor/bin/phpcbf src/ tests/",
+        "test": "./vendor/bin/phpunit tests/ --testdox"
     },
     "conflict": {
         "symfony/symfony": "*"
@@ -101,6 +104,7 @@
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^4.1",
         "phpunit/phpunit": "^12.1",
+        "squizlabs/php_codesniffer": "^3.12",
         "symfony/browser-kit": "7.2.*",
         "symfony/css-selector": "7.2.*",
         "symfony/debug-bundle": "7.2.*",

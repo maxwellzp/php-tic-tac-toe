@@ -12,10 +12,9 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 class AppFixtures extends Fixture
 {
     public function __construct(
-        private readonly UserFactory                 $userFactory,
+        private readonly UserFactory $userFactory,
         private readonly UserPasswordHasherInterface $userPasswordHasher,
-    )
-    {
+    ) {
     }
 
     public function load(ObjectManager $manager): void

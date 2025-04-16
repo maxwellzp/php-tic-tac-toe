@@ -22,7 +22,8 @@ use Zenstruck\Foundry\Test\ResetDatabase;
 #[CoversClass(GameService::class)]
 class GameServiceTest extends KernelTestCase
 {
-    use ResetDatabase, Factories;
+    use ResetDatabase;
+    use Factories;
 
     private GameRepository $gameRepository;
     private GameFactory $gameFactory;

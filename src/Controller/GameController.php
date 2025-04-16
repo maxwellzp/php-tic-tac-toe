@@ -30,8 +30,7 @@ final class GameController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function new(
         GameService $gameService,
-    ): Response
-    {
+    ): Response {
         $game = $gameService->createNewGame($this->getUser());
         return $this->redirectToRoute('app_game_play', ['id' => $game->getId()]);
     }
@@ -47,10 +46,9 @@ final class GameController extends AbstractController
     #[Route('/game/{id}/join', name: 'app_game_join')]
     #[IsGranted('ROLE_USER')]
     public function join(
-        Game        $game,
+        Game $game,
         GameService $gameService,
-    ): Response
-    {
+    ): Response {
         $gameService->joinGame($game, $this->getUser());
         return $this->redirectToRoute('app_game_play', ['id' => $game->getId()]);
     }
@@ -58,11 +56,10 @@ final class GameController extends AbstractController
     #[Route('/game/{id}/move/{cell}', name: 'app_game_move')]
     #[IsGranted('ROLE_USER')]
     public function move(
-        Game        $game,
-        int         $cell,
+        Game $game,
+        int $cell,
         GameService $gameService
-    ): Response
-    {
+    ): Response {
         if ($game->getStatus() !== GameStatus::PLAYING) {
             throw new \Exception("Game status is not playing");
         }

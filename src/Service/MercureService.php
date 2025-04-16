@@ -41,4 +41,3 @@ class MercureService
         $this->hub->publish($update);
     }
 }
-

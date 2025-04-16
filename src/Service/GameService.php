@@ -21,11 +21,9 @@ class GameService
 
     public function __construct(
         private readonly MercureService $mercureService,
-        private readonly GameFactory    $gameFactory,
+        private readonly GameFactory $gameFactory,
         private readonly GameRepository $gameRepository,
-    )
-    {
-
+    ) {
     }
 
     public function createNewGame(?User $user): Game
@@ -113,7 +111,7 @@ class GameService
     private function isBoardFull(array $board)
     {
         foreach ($board as $cell) {
-            if ($cell === ""){
+            if ($cell === "") {
                 return false;
             }
         }

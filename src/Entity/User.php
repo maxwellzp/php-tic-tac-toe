@@ -41,7 +41,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function __construct()
     {
-
     }
 
     public function getId(): ?Uuid
