@@ -108,7 +108,7 @@ class GameService
             GameTurn::O_TURN => GameTurn::X_TURN,
         };
     }
-    private function isBoardFull(array $board)
+    private function isBoardFull(array $board): bool
     {
         foreach ($board as $cell) {
             if ($cell === "") {
