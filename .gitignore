@@ -9,7 +9,7 @@
 ###< symfony/framework-bundle ###
 ###> symfony/phpunit-bridge ###
 .phpunit.result.cache
-/phpunit.xml
+/phpunit.xml.dist
 ###< symfony/phpunit-bridge ###
 terminal.txt
 .idea/
@@ -22,6 +22,6 @@ yarn-error.log
 ###< symfony/webpack-encore-bundle ###
 
 ###> phpunit/phpunit ###
-/phpunit.xml
+/phpunit.xml.dist
 /.phpunit.cache/
 ###< phpunit/phpunit ###
