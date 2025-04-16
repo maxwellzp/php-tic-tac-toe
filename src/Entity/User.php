@@ -39,15 +39,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
-    /**
-     * @var Collection<int, Game>
-     */
-    #[ORM\OneToMany(targetEntity: Game::class, mappedBy: 'userX')]
-    private Collection $games;
-
     public function __construct()
     {
-        $this->games = new ArrayCollection();
+
     }
 
     public function getId(): ?Uuid
@@ -125,33 +119,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // $this->plainPassword = null;
     }
 
-    /**
-     * @return Collection<int, Game>
-     */
-    public function getGames(): Collection
+    public function __toString(): string
     {
-        return $this->games;
-    }
-
-    public function addGame(Game $game): static
-    {
-        if (!$this->games->contains($game)) {
-            $this->games->add($game);
-            $game->setUserX($this);
-        }
-
-        return $this;
-    }
-
-    public function removeGame(Game $game): static
-    {
-        if ($this->games->removeElement($game)) {
-            // set the owning side to null (unless already changed)
-            if ($game->getUserX() === $this) {
-                $game->setUserX(null);
-            }
-        }
-
-        return $this;
+        return $this->getEmail() ?? 'User#' . spl_object_hash($this);
     }
 }
