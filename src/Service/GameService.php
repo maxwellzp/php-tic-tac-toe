@@ -38,15 +38,15 @@ class GameService
 
     public function joinGame(Game $game, ?User $user): Game
     {
+        if ($user === $game->getUserX()) {
+            throw new \Exception("You can't join this game because you've already joined the game.");
+        }
         $game->setUserO($user);
         $game->setStatus(GameStatus::PLAYING);
 
         $this->gameRepository->save($game, true);
 
-        $this->mercureService->publishGameUpdate($game, [
-            'type' => 'game_start',
-            'id' => $game->getId(),
-        ]);
+        $this->mercureService->publishGameStarted($game);
         return $game;
     }
 
@@ -59,13 +59,23 @@ class GameService
         if ($board[$cell] instanceof GameTurn) {
             throw new \Exception('This cell is already occupied');
         }
+        if ($game->getWinner()) {
+            throw new \Exception('Game is already finished');
+        }
 
         $board[$cell] = $game->getCurrentTurn();
+
+        if ($this->isBoardFull($board)) {
+            $game->setStatus(GameStatus::FINISHED);
+            return $game;
+        }
+
         $game->setBoard($board);
 
         $winner = $this->checkWinner($board);
         if ($winner) {
             $game->setWinner($winner);
+            $game->setStatus(GameStatus::FINISHED);
         } else {
             $game->setCurrentTurn($this->getNextTurn($game));
         }
@@ -99,5 +109,14 @@ class GameService
             GameTurn::X_TURN => GameTurn::O_TURN,
             GameTurn::O_TURN => GameTurn::X_TURN,
         };
+    }
+    private function isBoardFull(array $board)
+    {
+        foreach ($board as $cell) {
+            if ($cell === ""){
+                return false;
+            }
+        }
+        return true;
     }
 }

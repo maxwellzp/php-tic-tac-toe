@@ -51,10 +51,6 @@ final class GameController extends AbstractController
         GameService $gameService,
     ): Response
     {
-        if ($this->getUser() === $game->getUserX()) {
-            throw new \Exception("You can't join this game");
-        }
-
         $gameService->joinGame($game, $this->getUser());
         return $this->redirectToRoute('app_game_play', ['id' => $game->getId()]);
     }
