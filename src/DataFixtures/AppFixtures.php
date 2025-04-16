@@ -20,7 +20,7 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
-        $plainPassword = '123456';
+        $plainPassword = 'password';
 
         $userX = $this->userFactory->create('player1@example.com', $plainPassword);
         $userX->setPassword($this->userPasswordHasher->hashPassword($userX, $plainPassword));
