@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Service;
 use App\Entity\Game;
 use App\Entity\User;
 use App\Factory\GameFactory;
+use App\Factory\UserFactory;
 use App\Model\GameStatus;
 use App\Model\GameTurn;
 use App\Repository\GameRepository;
@@ -18,15 +19,29 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(GameService::class)]
 class GameServiceTest extends TestCase
 {
+    private User $userX;
+    private User $userO;
+    private GameRepository $gameRepository;
+    private MercureService $mercureService;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $userFactory = new UserFactory();
+        $this->userX = $userFactory->create('player1@example.com', 'password');
+        $this->userO = $userFactory->create('player2@example.com', 'password');
+        $this->gameRepository = $this->createMock(GameRepository::class);
+        $this->mercureService = $this->createMock(MercureService::class);
+    }
+
     public function testCreateNewGame(): void
     {
-        $user = $this->createMock(User::class);
         $game = $this->createMock(Game::class);
 
         $gameFactory = $this->createMock(GameFactory::class);
         $gameFactory->expects($this->once())
             ->method('create')
-            ->with($user)
+            ->with($this->userX)
             ->willReturn($game);
 
         $gameRepository = $this->createMock(GameRepository::class);
@@ -41,7 +56,7 @@ class GameServiceTest extends TestCase
 
         $service = new GameService($mercureService, $gameFactory, $gameRepository);
 
-        $result = $service->createNewGame($user);
+        $result = $service->createNewGame($this->userX);
 
         $this->assertSame($game, $result);
         $this->assertInstanceOf(Game::class, $game);
@@ -49,17 +64,13 @@ class GameServiceTest extends TestCase
 
     public function testJoinGameWorkingProperly()
     {
-        $user = $this->createMock(User::class);
         $factory = new GameFactory();
-        $game = $factory->create($user);
+        $game = $factory->create($this->userX);
 
         $mercureService = $this->createMock(MercureService::class);
         $mercureService->expects($this->once())
-            ->method('publishGameUpdate')
-            ->with($game, [
-                'type' => 'game_start',
-                'id' => null,
-            ]);
+            ->method('publishGameStarted')
+            ->with($game);
 
         $gameFactory = $this->createMock(GameFactory::class);
 
@@ -69,96 +80,58 @@ class GameServiceTest extends TestCase
             ->with($game, true);
 
         $service = new GameService($mercureService, $gameFactory, $gameRepository);
-        $result = $service->joinGame($game, $user);
+        $result = $service->joinGame($game, $this->userO);
         $this->assertSame(GameStatus::PLAYING, $result->getStatus());
         $this->assertInstanceOf(User::class, $result->getUserO());
     }
 
-    public function testMakeMoveSetCorrectCell()
+    public function testMakeMoveUpdatesCorrectCell()
     {
-        $user = $this->createMock(User::class);
-        $gameRepository = $this->createMock(GameRepository::class);
-        $mercureService = $this->createMock(MercureService::class);
-
         $factory = new GameFactory();
-        $game = $factory->create($user);
+        $game = $factory->create($this->userX);
         $emptyBoard = $game->getBoard();
-        for($i = 0; $i < 9; $i++) {
+        for ($i = 0; $i < 9; $i++) {
             $this->assertEmpty($emptyBoard[$i]);
         }
 
-        $service = new GameService($mercureService, $factory, $gameRepository);
+        $service = new GameService($this->mercureService, $factory, $this->gameRepository);
         $resultGame = $service->makeMove($game, 5);
         $board = $resultGame->getBoard();
-        $this->assertInstanceOf(GameTurn::class, $board[5]);
-    }
-
-    public function testMakeMoveWithZeroToNineReturnsFullBoard()
-    {
-        $user = $this->createMock(User::class);
-        $gameRepository = $this->createMock(GameRepository::class);
-        $mercureService = $this->createMock(MercureService::class);
-
-        $factory = new GameFactory();
-        $game = $factory->create($user);
-
-        $service = new GameService($mercureService, $factory, $gameRepository);
-
-        for($i = 0; $i < 9; $i++) {
-            $service->makeMove($game, $i);
-        }
-
-        $board = $game->getBoard();
-        for($i = 0; $i < 9; $i++) {
-            $cell = $board[$i];
-            $this->assertNotEmpty($cell);
-            $this->assertInstanceOf(GameTurn::class, $cell);
-        }
+        $cell = $board[5];
+        $this->assertInstanceOf(GameTurn::class, $cell);
+        $this->assertSame(GameTurn::X_TURN, $cell);
     }
 
     public function testMakeMoveReturnsWinnerIfBoardHasWinningCombination()
     {
-        $user = $this->createMock(User::class);
-        $gameRepository = $this->createMock(GameRepository::class);
-        $mercureService = $this->createMock(MercureService::class);
-
         $factory = new GameFactory();
-        $game = $factory->create($user);
+        $game = $factory->create($this->userX);
 
-        $service = new GameService($mercureService, $factory, $gameRepository);
-        $game->setWinner(GameTurn::X_TURN);
-        $service->makeMove($game, 0);
-        $game->setWinner(GameTurn::X_TURN);
-        $service->makeMove($game, 1);
-        $game->setWinner(GameTurn::X_TURN);
-        $service->makeMove($game, 2);
-        $this->assertInstanceOf(GameTurn::class,$game->getWinner());
-        $this->assertSame($game->getWinner(), GameTurn::X_TURN);
+        $service = new GameService($this->mercureService, $factory, $this->gameRepository);
+
+        $service->makeMove($game, 0); // X
+        $service->makeMove($game, 3); // O
+        $service->makeMove($game, 1); // X
+        $service->makeMove($game, 4); // O
+        $service->makeMove($game, 2); // X wins
+        $this->assertInstanceOf(GameTurn::class, $game->getWinner());
+        $this->assertSame(GameTurn::X_TURN, $game->getWinner());
     }
 
     public function testMakeMoveSwitchCurrentTurnToAnotherPlayer()
     {
-        $user = $this->createMock(User::class);
-        $gameRepository = $this->createMock(GameRepository::class);
-        $mercureService = $this->createMock(MercureService::class);
-
         $factory = new GameFactory();
-        $game = $factory->create($user);
-        $service = new GameService($mercureService, $factory, $gameRepository);
-        $game->setWinner(GameTurn::X_TURN);
+        $game = $factory->create($this->userX);
+        $service = new GameService($this->mercureService, $factory, $this->gameRepository);
         $service->makeMove($game, 0);
         $this->assertSame(GameTurn::O_TURN, $game->getCurrentTurn());
     }
 
     public function testMakeMoveWithWrongCellNumberThrowsException()
     {
-        $user = $this->createMock(User::class);
-        $gameRepository = $this->createMock(GameRepository::class);
-        $mercureService = $this->createMock(MercureService::class);
-
         $factory = new GameFactory();
-        $game = $factory->create($user);
-        $service = new GameService($mercureService, $factory, $gameRepository);
+        $game = $factory->create($this->userX);
+        $service = new GameService($this->mercureService, $factory, $this->gameRepository);
 
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Invalid cell');
@@ -167,13 +140,9 @@ class GameServiceTest extends TestCase
 
     public function testMakeMoveWithTakenCellNumberThrowsException()
     {
-        $user = $this->createMock(User::class);
-        $gameRepository = $this->createMock(GameRepository::class);
-        $mercureService = $this->createMock(MercureService::class);
-
         $factory = new GameFactory();
-        $game = $factory->create($user);
-        $service = new GameService($mercureService, $factory, $gameRepository);
+        $game = $factory->create($this->userX);
+        $service = new GameService($this->mercureService, $factory, $this->gameRepository);
         $service->makeMove($game, 0);
 
         $this->expectException(\Exception::class);
@@ -181,4 +150,31 @@ class GameServiceTest extends TestCase
         $service->makeMove($game, 0);
     }
 
+    public function testMakeMoveThrowsIfGameIsAlreadyWon()
+    {
+        $factory = new GameFactory();
+        $game = $factory->create($this->userX);
+        $game->setWinner(GameTurn::X_TURN);
+
+        $service = new GameService($this->mercureService, $factory, $this->gameRepository);
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Game is already finished');
+
+        $service->makeMove($game, 4);
+    }
+    public function testMakeMoveDetectsDraw()
+    {
+        $factory = new GameFactory();
+        $game = $factory->create($this->userX);
+        $service = new GameService($this->mercureService, $factory, $this->gameRepository);
+
+        $moves = [0,1,2,4,3,5,7,6,8];
+        foreach ($moves as $move) {
+            $service->makeMove($game, $move);
+        }
+
+        $this->assertNull($game->getWinner());
+        $this->assertSame(GameStatus::FINISHED, $game->getStatus());
+    }
 }
