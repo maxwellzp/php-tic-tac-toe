@@ -62,7 +62,7 @@ jobs:
       - run: composer install --prefer-dist --no-progress
       - name: Test PostgreSQL connection
         run: |
-          psql -h localhost -U tester_user -d tictactoe -c "SELECT 1"
+          run: PGPASSWORD=password psql -h localhost -U tester_user -d tictactoe -c "SELECT 1"
       - run: |
           php bin/console doctrine:database:create --if-not-exists --env=test
           php bin/console doctrine:schema:create --env=test
