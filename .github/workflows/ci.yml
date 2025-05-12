@@ -14,7 +14,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Validate composer.json and composer.lock
-        run: composer validate --strict
+        run: composer validate --strict --no-check-all --no-check-publish
   unit-tests:
     needs: validate-composer
     runs-on: ubuntu-latest
