@@ -8,37 +8,34 @@ on:
 
 env:
   APP_ENV: test
+  DATABASE_URL: "postgresql://tester_user:password@postgres:5432/tictactoe?serverVersion=16&charset=utf8"
 
 jobs:
   validate-composer:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Validate composer.json and composer.lock
-        run: composer validate --strict --no-check-all --no-check-publish
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - run: composer validate --strict --no-check-all --no-check-publish
+
   unit-tests:
     needs: validate-composer
     runs-on: ubuntu-latest
     steps:
-      - name: Setup PHP with PECL extension
-        uses: shivammathur/setup-php@v2
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Cache Composer packages
-        id: composer-cache
-        uses: actions/cache@v4
+          coverage: pcov
+      - uses: actions/cache@v4
         with:
           path: vendor
           key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-php-
-      - name: Install Composer dependencies
-        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-      - name: Run test suite
-        run: php ./vendor/bin/phpunit --testsuite Unit
+      - run: composer install --prefer-dist --no-progress
+      - run: php ./vendor/bin/phpunit --testsuite Unit
 
   integration-tests:
     needs: validate-composer
@@ -50,39 +47,20 @@ jobs:
           POSTGRES_DB: tictactoe
           POSTGRES_PASSWORD: password
           POSTGRES_USER: tester_user
-        ports:
-          - 5432:5432
+        ports: [5432:5432]
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
-      - name: Setup PHP with PECL extension
-        uses: shivammathur/setup-php@v2
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Cache Composer packages
-        id: composer-cache
-        uses: actions/cache@v4
+          extensions: pdo_pgsql
+      - uses: actions/cache@v4
         with:
           path: vendor
           key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-php-
-      - name: Install Dependencies
-        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-      - name: Create database schema
-        id: create-database
-        run: |
+      - run: composer install --prefer-dist --no-progress
+      - run: |
           php bin/console doctrine:database:create --if-not-exists --env=test
           php bin/console doctrine:schema:create --env=test
-      - name: Display information
-        if: ${{ failure() && steps.create-database.outcome == 'failure' }}
-        run: |
-          php -m
-          php -v
-          echo "Database creation step failed"
-          php -m | grep pdo_pgsql
-      - name: Run integration tests
-        run: php ./vendor/bin/phpunit --testsuite Integration
-    env:
-      DATABASE_URL: "postgresql://tester_user:password@127.0.0.1:5432/tictactoe?serverVersion=16&charset=utf8"
+      - run: php ./vendor/bin/phpunit --testsuite Integration
