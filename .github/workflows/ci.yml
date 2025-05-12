@@ -41,6 +41,7 @@ jobs:
         run: php ./vendor/bin/phpunit --testsuite Unit
 
   integration-tests:
+    needs: validate-composer
     runs-on: ubuntu-latest
     services:
       postgres:
