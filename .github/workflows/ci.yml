@@ -8,7 +8,7 @@ on:
 
 env:
   APP_ENV: test
-  DATABASE_URL: "postgresql://tester_user:password@postgres:5432/tictactoe?serverVersion=16&charset=utf8"
+  DATABASE_URL: "postgresql://tester_user:password@localhost:5432/tictactoe?serverVersion=16&charset=utf8"
 
 jobs:
   validate-composer:
@@ -60,6 +60,9 @@ jobs:
           path: vendor
           key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
       - run: composer install --prefer-dist --no-progress
+      - name: Test PostgreSQL connection
+        run: |
+          psql -h localhost -U tester_user -d tictactoe -c "SELECT 1"
       - run: |
           php bin/console doctrine:database:create --if-not-exists --env=test
           php bin/console doctrine:schema:create --env=test
