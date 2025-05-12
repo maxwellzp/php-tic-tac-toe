@@ -6,6 +6,8 @@ on:
   pull_request:
     branches: [ "main" ]
 
+env:
+  APP_ENV: test
 
 jobs:
   validate-composer:
