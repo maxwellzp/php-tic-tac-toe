@@ -1,4 +1,6 @@
 {
+    "name": "maxwellzp/php-tic-tac-toe",
+    "description": "Tic-tac-toe game written in PHP.",
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "stable",
